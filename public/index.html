@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信公众号文章生成工具</title> 
+    <style>
+        body {
+            font-family: '微软雅黑', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa; 
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color:  #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .upload-area:hover {
+            background-color: #f8fafc;
+        }
+        .upload-area.dragover {
+            background-color: #eef2f7;
+            border-color: #94a3b8;
+        }
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+        .btn:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background-color: #64748b;
+        }
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+        .btn-danger {
+            background-color: #ef4444;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .hidden {
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #334155;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: '微软雅黑', 'Microsoft YaHei', sans-serif;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .actions {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .notification {
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+        .notification.success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .notification.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .preview-container {
+            margin-top: 30px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .preview-header {
+            background-color: #f1f5f9;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .preview-header h3 {
+            margin: 0;
+            color: #334155;
+        }
+        .tabs {
+            display: flex;
+            margin-top: 10px;
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 5px;
+            background-color: #e2e8f0;
+        }
+        .tab.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .preview-content {
+            padding: 20px;
+            background-color: white;
+            min-height: 200px;
+        }
+        .manual-editor {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: #f8fafc;
+        }
+        .section-list {
+            margin: 20px 0;
+        }
+        .section-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background-color: white;
+        }
+        .template-selector {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background-color: #f8fafc;
+        }
+        /* 模板管理面板样式 */
+        .template-panel {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .template-panel.hidden {
+            display: none;
+        }
+        .template-form .form-group {
+            margin-bottom: 15px;
+        }
+        .template-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .template-form input,
+        .template-form select,
+        .template-form textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .style-config {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .style-section {
+            margin-bottom: 15px;
+        }
+        .style-section button {
+            margin-bottom: 10px;
+        }
+        .template-list {
+            margin-top: 20px;
+        }
+        .template-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .template-header h5 {
+            margin: 0 0 5px 0;
+        }
+        .template-header p {
+            margin: 0 0 3px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .delete-template {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-template:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>微信公众号文章生成工具</h1>
+        
+        <!-- 通知区域 -->
+        <div id="notification" class="notification hidden"></div>
+        
+        <!-- 文件上传区域 -->
+        <div class="upload-area" id="uploadArea">
+            <h3>点击或拖拽Word文档到此处上传</h3>
+            <p>支持 .docx 格式</p>
+            <input type="file" id="fileInput" accept=".docx" style="display: none;">
+        </div>
+        
+        <!-- 模板选择器 -->
+        <div id="templateSelector" class="template-selector hidden">
+            <label for="templateSelect">选择模板:</label>
+            <select id="templateSelect">
+                <option value="">默认模板</option>
+                <!-- 模板选项将通过JavaScript动态添加 -->
+            </select>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="actions">
+            <button id="parseBtn" class="btn" disabled>解析文档</button>
+            <button id="manualBtn" class="btn btn-secondary">手动输入</button>
+            <button id="templateManagementBtn" class="btn btn-secondary">模板管理</button>
+            <button id="copyBtn" class="btn" disabled>复制HTML</button>
+        </div>
+        
+        <!-- 模板管理面板 -->
+        <div id="templateManagementPanel" class="template-panel hidden">
+            <h3>模板管理面板</h3>
+            
+            <!-- 创建模板表单 -->
+            <div class="template-form">
+                <div class="form-group">
+                    <label>模板名称:</label>
+                    <input type="text" id="newTemplateName" placeholder="输入模板名称">
+                </div>
+                
+                <div class="form-group">
+                    <label>模板ID:</label>
+                    <input type="text" id="newTemplateId" placeholder="输入模板ID">
+                </div>
+                
+                <div class="form-group">
+                    <label>模板描述:</label>
+                    <input type="text" id="newTemplateDescription" placeholder="输入模板描述">
+                </div>
+                
+                <div class="form-group">
+                    <label>基础模板:</label>
+                    <select id="baseTemplate">
+                        <option value="business">商务风格</option>
+                        <option value="simple">简约风格</option>
+                        <option value="education">教育风格</option>
+                        <option value="creative">创意风格</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>图片处理规则:</label>
+                    <select id="imageHandlingRule">
+                        <option value="business">商务风格规则（1-2张图用带注释双图，3张以上用无注释双图）</option>
+                        <option value="simple">简约风格规则（始终使用单图）</option>
+                        <option value="education">教育风格规则（1张图用单图，2张以上用带注释双图）</option>
+                    </select>
+                </div>
+                
+                <!-- 样式配置区域 -->
+                <div class="style-config">
+                    <h4>基础模板样式配置:</h4>
+                    
+                    <div class="style-section">
+                        <label>小标题样式:</label>
+                        <button id="applySubtitleStyle" class="btn btn-secondary">识别并应用小标题样式</button>
+                        <textarea id="subtitleStyle" rows="6" placeholder="粘贴小标题HTML样式代码"></textarea>
+                    </div>
+                    
+                    <div class="style-section">
+                        <label>正文样式:</label>
+                        <button id="applyTextStyle" class="btn btn-secondary">识别并应用正文样式</button>
+                        <textarea id="textStyle" rows="6" placeholder="粘贴正文HTML样式代码"></textarea>
+                    </div>
+                </div>
+                
+                <button id="createTemplate" class="btn">创建模板</button>
+            </div>
+            
+            <!-- 现有模板列表 -->
+            <div class="template-list">
+                <h4>现有模板列表:</h4>
+                <div id="templatesContainer">
+                    <!-- 模板列表将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 手动输入编辑器 -->
+        <div id="manualEditor" class="manual-editor hidden">
+            <h3>手动输入内容</h3>
+            <div class="form-group">
+                <label for="manualTitle">文章标题</label>
+                <input type="text" id="manualTitle" placeholder="输入文章标题">
+            </div>
+            <div class="section-list" id="sectionList">
+                <!-- 内容区块将动态添加 -->
+            </div>
+            <button type="button" id="addSection" class="btn">添加内容区块</button>
+            <div class="actions">
+                <button id="submitManualContent" class="btn">生成文章</button>
+            </div>
+        </div>
+        
+        <!-- 预览区域 -->
+        <div id="previewContainer" class="preview-container hidden">
+            <div class="preview-header">
+                <h3>预览</h3>
+                <div class="tabs">
+                    <div class="tab active" data-tab="desktop">电脑端</div>
+                    <div class="tab" data-tab="mobile">手机端</div>
+                </div>
+            </div>
+            <div class="preview-content" id="previewContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let parsedContent = null;
+        let htmlContent = null;
+        let templates = [];
+        let selectedTemplate = '';
+        
+        // DOM元素
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const parseBtn = document.getElementById('parseBtn');
+        const manualBtn = document.getElementById('manualBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewContent = document.getElementById('previewContent');
+        const manualEditor = document.getElementById('manualEditor');
+        const manualTitle = document.getElementById('manualTitle');
+        const sectionList = document.getElementById('sectionList');
+        const addSectionBtn = document.getElementById('addSection');
+        const submitManualContentBtn = document.getElementById('submitManualContent');
+        const notification = document.getElementById('notification');
+        const templateSelector = document.getElementById('templateSelector');
+        const templateSelect = document.getElementById('templateSelect');
+        const templateManagementBtn = document.getElementById('templateManagementBtn');
+        const templateManagementPanel = document.getElementById('templateManagementPanel');
+        const templatesContainer = document.getElementById('templatesContainer');
+        
+        // 事件监听器
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        parseBtn.addEventListener('click', parseDocument);
+        manualBtn.addEventListener('click', toggleManualEditor);
+        copyBtn.addEventListener('click', copyHTML);
+        addSectionBtn.addEventListener('click', addSection);
+        submitManualContentBtn.addEventListener('click', submitManualContent);
+        templateSelect.addEventListener('change', handleTemplateChange);
+        templateManagementBtn.addEventListener('click', toggleTemplateManagement);
+        
+        // 模板管理相关事件监听器
+        document.getElementById('applySubtitleStyle').addEventListener('click', () => {
+            loadSampleStyle('subtitle');
+        });
+        
+        document.getElementById('applyTextStyle').addEventListener('click', () => {
+            loadSampleStyle('text');
+        });
+        
+        document.getElementById('createTemplate').addEventListener('click', createCustomTemplate);
+        
+        // 拖拽上传功能
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            }
+        });
+        
+        // 标签页切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有活动状态
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // 添加当前活动状态
+                tab.classList.add('active');
+                // 这里可以添加响应式预览逻辑
+            });
+        });
+        
+        // 页面加载时获取模板列表
+        window.addEventListener('DOMContentLoaded', loadTemplates);
+        
+        // 加载模板列表
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/templates');
+                const result = await response.json();
+                
+                if (result.success) {
+                    templates = result.data.templates;
+                    updateTemplateSelect();
+                    renderTemplateList(templates); // 渲染模板管理面板中的模板列表
+                } else {
+                    console.error('获取模板列表失败:', result.error);
+                }
+            } catch (error) {
+                console.error('加载模板时出错:', error);
+            }
+        }
+        
+        // 更新模板选择下拉框
+        function updateTemplateSelect() {
+            // 清空现有选项
+            templateSelect.innerHTML = '<option value="">默认模板</option>';
+            
+            // 添加模板选项
+            templates.forEach(template => {
+                const option = document.createElement('option');
+                option.value = template.id;
+                option.textContent = template.name;
+                option.title = template.description;
+                templateSelect.appendChild(option);
+            });
+        }
+        
+        // 处理模板选择变化
+        function handleTemplateChange() {
+            selectedTemplate = templateSelect.value;
+        }
+        
+        // 切换模板管理面板
+        function toggleTemplateManagement() {
+            templateManagementPanel.classList.toggle('hidden');
+            // 如果面板展开，则刷新模板列表
+            if (!templateManagementPanel.classList.contains('hidden')) {
+                loadTemplates();
+            }
+        }
+        
+        // 处理文件选择
+        function handleFileSelect() {
+            if (fileInput.files.length > 0) {
+                parseBtn.disabled = false;
+                templateSelector.classList.remove('hidden');
+                showNotification(`已选择文件: ${fileInput.files[0].name}`, 'success');
+            }
+        }
+        
+        // 解析文档
+        async function parseDocument() {
+            if (!fileInput.files.length) return;
+            
+            const file = fileInput.files[0];
+            if (!file.name.endsWith('.docx')) {
+                showNotification('请选择 .docx 格式的文件', 'error');
+                return;
+            }
+            
+            try {
+                parseBtn.disabled = true;
+                parseBtn.textContent = '解析中...';
+                
+                // 读取文件为ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // 调试信息
+                console.log('文件大小:', arrayBuffer.byteLength);
+                
+                // 检查文件是否为空
+                if (arrayBuffer.byteLength === 0) {
+                    throw new Error('选择的文件为空');
+                }
+                
+                // 发送到后端解析
+                const response = await fetch('/api/parse-document', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        document: Array.from(new Uint8Array(arrayBuffer)),
+                        template: selectedTemplate || undefined
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    parsedContent = result.data.parsedContent;
+                    htmlContent = result.data.htmlContent;
+                    
+                    // 显示预览
+                    showPreview();
+                    showNotification('文档解析成功', 'success');
+                } else {
+                    throw new Error(result.error || '解析失败');
+                }
+            } catch (error) {
+                console.error('解析文档时出错:', error);
+                showNotification(`解析失败: ${error.message}`, 'error');
+            } finally {
+                parseBtn.disabled = false;
+                parseBtn.textContent = '解析文档';
+            }
+        }
+        
+        // 显示预览
+        function showPreview() {
+            if (!htmlContent) return;
+            
+            previewContent.innerHTML = htmlContent;
+            previewContainer.classList.remove('hidden');
+            copyBtn.disabled = false;
+        }
+        
+        // 复制HTML
+        function copyHTML() {
+            if (!htmlContent) return;
+            
+            navigator.clipboard.writeText(htmlContent)
+                .then(() => {
+                    showNotification('HTML已复制到剪贴板', 'success');
+                })
+                .catch(err => {
+                    console.error('复制失败:', err);
+                    showNotification('复制失败，请手动复制', 'error');
+                });
+        }
+        
+        // 切换手动编辑器
+        function toggleManualEditor() {
+            manualEditor.classList.toggle('hidden');
+            if (!manualEditor.classList.contains('hidden')) {
+                // 显示时添加一个空的内容区块
+                if (sectionList.children.length === 0) {
+                    addSection();
+                }
+            }
+        }
+        
+        // 添加内容区块
+        function addSection() {
+            const sectionId = Date.now();
+            const sectionItem = document.createElement('div');
+            sectionItem.className = 'section-item';
+            sectionItem.innerHTML = `
+                <div class="form-group">
+                    <label>区块类型</label>
+                    <select class="section-type" data-section="${sectionId}">
+                        <option value="text">正文</option>
+                        <option value="subtitle">小标题</option>
+                        <option value="image">图片</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>内容</label>
+                    <textarea class="section-content" data-section="${sectionId}" placeholder="输入内容..."></textarea>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="removeSection(${sectionId})">删除区块</button>
+            `;
+            sectionList.appendChild(sectionItem);
+        }
+        
+        // 删除内容区块
+        function removeSection(sectionId) {
+            const sectionItem = document.querySelector(`.section-type[data-section="${sectionId}"]`).closest('.section-item');
+            if (sectionItem) {
+                sectionItem.remove();
+            }
+        }
+        
+        // 提交手动输入内容
+        async function submitManualContent() {
+            try {
+                submitManualContentBtn.disabled = true;
+                submitManualContentBtn.textContent = '生成中...';
+                
+                // 收集手动输入的内容
+                const title = manualTitle.value;
+                const sections = [];
+                
+                document.querySelectorAll('.section-item').forEach((item, index) => {
+                    const typeSelect = item.querySelector('.section-type');
+                    const contentTextarea = item.querySelector('.section-content');
+                    
+                    sections.push({
+                        type: typeSelect.value,
+                        content: contentTextarea.value,
+                        position: index + 1
+                    });
+                });
+                
+                // 发送到后端处理
+                const response = await fetch('/api/manual-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        content: {
+                            title,
+                            sections
+                        },
+                        template: selectedTemplate || undefined
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    parsedContent = result.data.parsedContent;
+                    htmlContent = result.data.htmlContent;
+                    
+                    // 隐藏手动编辑器
+                    manualEditor.classList.add('hidden');
+                    
+                    // 显示预览
+                    showPreview();
+                    showNotification('文章生成成功', 'success');
+                } else {
+                    throw new Error(result.error || '生成失败');
+                }
+            } catch (error) {
+                console.error('处理手动内容时出错:', error);
+                showNotification(`生成失败: ${error.message}`, 'error');
+            } finally {
+                submitManualContentBtn.disabled = false;
+                submitManualContentBtn.textContent = '生成文章';
+            }
+        }
+        
+        // 显示通知
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.remove('hidden');
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // 模板管理功能
+        // 加载示例样式
+        function loadSampleStyle(type) {
+            let styleTextarea, sampleHTML;
+            
+            if (type === 'subtitle') {
+                styleTextarea = document.getElementById('subtitleStyle');
+                sampleHTML = `<section style="margin: 10px auto;background-color: #e8efbe;padding: 4px;border-radius: 25px;box-sizing:border-box;">
+    <section style="border: 1px dashed #bdc325;border-radius: 25px;padding: 8px 15px;background-color: #ffffff;box-sizing:border-box;">
+        <section style="display: flex;align-items: center;justify-content: space-between;">
+            <section style="flex-shrink: 0;">
+                <section class="assistant" style="width: 15px;box-sizing:border-box;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25.9 25.91" style="display: block;" xml:space="default">
+                        <g id="图层_2" data-name="图层 2">
+                            <g id="图层_1-2" data-name="图层 1">
+                                <path d="M22.35,16.5c-2,0-7.1-3.55-7.1-3.55s5.14-3.55,7.1-3.55a3.55,3.55,0,0,1,0,7.1ZM9.4,3.55a3.55,3.55,0,0,1,7.1,0c0,2-3.55,7.11-3.55,7.11S9.4,5.52,9.4,3.55Zm-5.85,13a3.55,3.55,0,0,1,0-7.1c2,0,7.11,3.55,7.11,3.55S5.51,16.5,3.55,16.5Zm13,5.85a3.55,3.55,0,1,1-7.1,0c0-2,3.55-7.1,3.55-7.1S16.5,20.39,16.5,22.35Z" style="fill:#fddd6a;fill-rule:evenodd"></path>
+                            </g>
+                        </g>
+                    </svg>
+                </section>
+            </section>
+            <section>
+                <section style="font-size: 16px;color: #3f3f3f;text-align: center;padding: 0 10px;">
+                    <strong class="135brush" data-brushtype="text">小标题</strong>
+                </section>
+            </section>
+            <section style="flex-shrink: 0;">
+                <section class="assistant" style="width: 15px;box-sizing:border-box;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25.9 25.91" style="display: block;" xml:space="default">
+                        <g id="图层_2" data-name="图层 2">
+                            <g id="图层_1-2" data-name="图层 1">
+                                <path d="M22.35,16.5c-2,0-7.1-3.55-7.1-3.55s5.14-3.55,7.1-3.55a3.55,3.55,0,0,1,0,7.1ZM9.4,3.55a3.55,3.55,0,0,1,7.1,0c0,2-3.55,7.11-3.55,7.11S9.4,5.52,9.4,3.55Zm-5.85,13a3.55,3.55,0,0,1,0-7.1c2,0,7.11,3.55,7.11,3.55S5.51,16.5,3.55,16.5Zm13,5.85a3.55,3.55,0,1,1-7.1,0c0-2,3.55-7.1,3.55-7.1S16.5,20.39,16.5,22.35Z" style="fill:#fddd6a;fill-rule:evenodd"></path>
+                            </g>
+                        </g>
+                    </svg>
+                </section>
+            </section>
+        </section>
+    </section>
+</section>`;
+            } else if (type === 'text') {
+                styleTextarea = document.getElementById('textStyle');
+                sampleHTML = `<section style="background-color: #f9fcee;padding: 20px 15px;box-sizing:border-box;">
+    <section data-autoskip="1" class="135brush" style="text-align: justify;line-height:1.75em;letter-spacing: 1.5px;font-size:14px;color:#333333;background-color: transparent;">
+        <p style="text-indent: 2.21428em; margin-bottom: 5px; display: block;">
+            <span style="font-family:微软雅黑, Microsoft YaHei;">正文</span>
+        </p>
+    </section>
+</section>`;
+            }
+            
+            if (styleTextarea && sampleHTML) {
+                styleTextarea.value = sampleHTML;
+                showNotification(`已加载示例${type === 'subtitle' ? '小标题' : '正文'}样式`, 'success');
+            }
+        }
+        
+        // 创建自定义模板
+        async function createCustomTemplate() {
+            try {
+                const templateConfig = {
+                    id: document.getElementById('newTemplateId').value,
+                    name: document.getElementById('newTemplateName').value,
+                    description: document.getElementById('newTemplateDescription').value,
+                    baseTemplate: document.getElementById('baseTemplate').value,
+                    styles: {
+                        subtitle: document.getElementById('subtitleStyle').value,
+                        text: document.getElementById('textStyle').value
+                    }
+                };
+                
+                // 根据选择的图片处理规则设置imageRules
+                switch(document.getElementById('imageHandlingRule').value) {
+                    case 'business':
+                        templateConfig.imageRules = {
+                            minImagesForDoubleWithCaption: 1,
+                            minImagesForDoubleNoCaption: 3
+                        };
+                        break;
+                    case 'simple':
+                        templateConfig.imageRules = {
+                            minImagesForDoubleWithCaption: Infinity,
+                            minImagesForDoubleNoCaption: Infinity
+                        };
+                        break;
+                    case 'education':
+                        templateConfig.imageRules = {
+                            minImagesForDoubleWithCaption: 2,
+                            minImagesForDoubleNoCaption: Infinity
+                        };
+                        break;
+                }
+                
+                const response = await fetch('/api/templates/create-custom', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ templateConfig })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('模板创建成功', 'success');
+                    loadTemplates(); // 重新加载模板列表
+                    clearTemplateForm(); // 清空表单
+                } else {
+                    showNotification(`创建失败: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`创建失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 渲染模板列表
+        function renderTemplateList(templates) {
+            templatesContainer.innerHTML = '';
+            
+            templates.forEach(template => {
+                const templateElement = document.createElement('div');
+                templateElement.className = 'template-item';
+                templateElement.innerHTML = `
+                    <div class="template-header">
+                        <h5>${template.name} (${template.isBuiltIn ? '内置模板' : '自定义'})</h5>
+                        <p>${template.description}</p>
+                        <p>ID: ${template.id}</p>
+                    </div>
+                    ${!template.isBuiltIn ? 
+                      `<button class="delete-template btn btn-danger" data-template-id="${template.id}">删除</button>` : 
+                      '<button class="delete-template btn btn-secondary" disabled>无法删除</button>'}
+                `;
+                
+                templatesContainer.appendChild(templateElement);
+            });
+            
+            // 绑定删除事件
+            document.querySelectorAll('.delete-template').forEach(button => {
+                if (!button.disabled) {
+                    button.addEventListener('click', (e) => {
+                        const templateId = e.target.dataset.templateId;
+                        deleteTemplate(templateId);
+                    });
+                }
+            });
+        }
+        
+        // 删除模板
+        async function deleteTemplate(templateId) {
+            if (!confirm('确定要删除这个模板吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/templates/${templateId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('模板删除成功', 'success');
+                    loadTemplates(); // 重新加载模板列表
+                } else {
+                    showNotification(`删除失败: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`删除失败: ${error.message}`, 'error');
+            }
+        }
+        
+        // 清空模板表单
+        function clearTemplateForm() {
+            document.getElementById('newTemplateName').value = '';
+            document.getElementById('newTemplateId').value = '';
+            document.getElementById('newTemplateDescription').value = '';
+            document.getElementById('subtitleStyle').value = '';
+            document.getElementById('textStyle').value = '';
+        }
+        
+        // 将removeSection函数添加到全局作用域
+        window.removeSection = removeSection;
+    </script>
+</body>
+</html>
